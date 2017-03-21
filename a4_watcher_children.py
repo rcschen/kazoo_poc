@@ -1,12 +1,14 @@
 import sys
 from kazoo.client import KazooClient, KazooState, KeeperState
 import logging
+from beat.celery_s import app
+from const import ZK_ENSEMBLE 
 logging.basicConfig(level=logging.DEBUG)
 ROOT_PATH='/schedulers'
 my_id=None
 
 def getZK(hosts):
-    return KazooClient(hosts, read_only=True)
+    return KazooClient(ZK_ENSEMBLE, read_only=False)
 
 def my_listener(state):
     if state == KazooState.LOST:
@@ -28,6 +30,7 @@ def my_watch_chilren(children):
     logging.info('children: %s' %children)
     if min([int(id) for id in children]) == my_id:
        logging.info('====== ITs MY TERM GOGOGO!!!!!')
+       app.start()
     else:
        logging.info('------ NOT MY BUSINESS -------')
 def init_root_path(zk):
